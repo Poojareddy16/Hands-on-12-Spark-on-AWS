@@ -96,6 +96,8 @@ handsonl13/athena-results
 
 Upload **reviews.csv** into the **raw/** directory.
 
+<img width="1913" height="1002" alt="image" src="https://github.com/user-attachments/assets/1de3cc22-9c67-4b18-be31-c4481571b758" />
+
 ---
 
 ### ✔ 2. Create IAM Role for Glue
@@ -120,9 +122,32 @@ AmazonS3FullAccess
 
 These allow Glue to run jobs and access S3 buckets.
 
+<img width="1919" height="1000" alt="image" src="https://github.com/user-attachments/assets/ebdeca5f-ee17-4377-9749-ea8ca5422fa3" />
+
+
 ---
 
-### ✔ 3. Create Lambda Trigger Function
+### ✔ 3. Create the AWS Glue ETL Job
+
+1. Open **AWS Glue → ETL Jobs**
+2. Click **Create Job**
+3. Choose **Spark Script Editor**
+4. Paste the contents of your ETL script (`glue_job_script.py`)
+5. Go to **Job Details**
+6. Set: **Job Name →** process_reviews_job
+7. **IAM Role →** AWSGlueServiceRole-Reviews
+8. Click **Save**
+
+The script is already configured to use your S3 paths:
+```bash
+s3://handsonl13/raw/
+s3://handsonl13/processed/
+s3://handsonl13/athena-results/
+```
+<img width="947" height="485" alt="glueJob" src="https://github.com/user-attachments/assets/58d08550-13b2-473a-8184-f0dfcc01558a" />
+
+
+### ✔ 4. Create Lambda Trigger Function
 
 This Lambda function automatically starts the AWS Glue ETL job whenever a new CSV file is uploaded into the S3 raw folder.
 
@@ -138,9 +163,12 @@ This Lambda function automatically starts the AWS Glue ETL job whenever a new CS
    - Select **Create a new role with basic Lambda permissions**
 4. Click **Create Function**
 
+<img width="956" height="446" alt="lambda-trigger" src="https://github.com/user-attachments/assets/91df83da-729b-46d4-ad8d-a2b6465077f4" />
+
+
 ---
 
-## 🟦 Lambda Function Code (Paste in the Code Editor)
+### 5. a 🟦 Lambda Function Code (Paste in the Code Editor)
 
 ```python
 import boto3
@@ -159,7 +187,7 @@ This will:
 - Start the Glue job
 - Print the Glue JobRunId in CloudWatch logs
 
-## 🟧 Add Permissions to Allow Lambda to Start Glue Jobs
+### 5.b 🟧 Add Permissions to Allow Lambda to Start Glue Jobs
 
 Lambda needs special permission to call Glue.
 
@@ -185,7 +213,10 @@ Lambda needs special permission to call Glue.
 5. Name the policy: Allow-Glue-StartJobRun
 6. Save
 Now Lambda can successfully start your Glue ETL job.
-## 🟦 Add S3 Trigger to Lambda
+
+<img width="1914" height="994" alt="image" src="https://github.com/user-attachments/assets/4b5ced18-150a-4678-b9b2-dc142454477e" />
+
+### 5.c 🟦 Add S3 Trigger to Lambda
 
 To make Lambda run whenever a new file is uploaded:
 1. Go to your Lambda function page
@@ -220,6 +251,8 @@ You will see an entry similar to:
 - END RequestId: 7c1d5bdf-0d2a-4a3c-9af7-230e8932b26a
 - REPORT RequestId: 7c1d5bdf-0d2a-4a3c-9af7-230e8932b26a Duration: 125.34 ms Billed Duration: 126 ms
 
+<img width="959" height="471" alt="cloudwatch" src="https://github.com/user-attachments/assets/c4213f48-a335-4f9c-954b-3614eab94b6b" />
+
 ---
 
 ### ✔ What This Confirms
@@ -232,6 +265,49 @@ You will see an entry similar to:
 
 - **Glue job was launched correctly**  
   The JobRunId (`jr_123456789abcdef`) confirms the ETL job started.
+
+---
+
+
+### 🚀 How to Run the Pipeline 
+
+1️⃣ Upload your raw file to S3:
+s3://handsonl13/raw/reviews.csv
+
+2️⃣ This automatically triggers:
+- S3 → Lambda  
+- Lambda → Glue  
+- Glue runs ETL + Spark SQL queries  
+
+3️⃣ Monitor the Glue job:
+AWS Glue → Jobs → process_reviews_job → Runs
+
+Status should be **Succeeded**.
+
+4️⃣ Check output in S3:
+- s3://handsonl13/processed/
+- s3://handsonl13/athena-results/
+--- 
+
+### 📈 Athena Results (Short Summary)
+
+After the Glue ETL job finishes, all analytics outputs are written to:
+```bash
+s3://handsonl13/athena-results/
+```
+
+Glue automatically creates four folders—one for each Spark SQL query:
+```bash
+athena-results/
+├── main-product-analytics/
+├── datewise-review-count/
+├── top5-customers/
+└── rating-distribution/
+```
+
+- Each folder contains: part-00000.csv
+<img width="946" height="496" alt="athena-results" src="https://github.com/user-attachments/assets/c324e995-59bb-49af-affd-e00e27849642" />
+<img width="959" height="464" alt="s3-athena-results" src="https://github.com/user-attachments/assets/2d3387fc-5769-4c80-924c-672411b52fa2" />
 
 ---
 
