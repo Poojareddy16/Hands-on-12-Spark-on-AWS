@@ -308,6 +308,7 @@ athena-results/
 - Each folder contains: part-00000.csv
 <img width="946" height="496" alt="athena-results" src="https://github.com/user-attachments/assets/c324e995-59bb-49af-affd-e00e27849642" />
 <img width="959" height="464" alt="s3-athena-results" src="https://github.com/user-attachments/assets/2d3387fc-5769-4c80-924c-672411b52fa2" />
+<img width="959" height="464" alt="s3-athena-results" src="https://github.com/user-attachments/assets/b62c1025-10dd-4546-9c2d-fff1c9e50acd" />
 
 ---
 
